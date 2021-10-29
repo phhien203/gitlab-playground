@@ -24,7 +24,7 @@ install_dependencies:
   only:
     refs:
       - merge_requests
-      - master
+      - main
     changes:
       - package-lock.json
 
