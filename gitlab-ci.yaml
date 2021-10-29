@@ -1,0 +1,77 @@
+stages:
+  - install
+  - build_and_test
+
+variables:
+  PROJECT_PATH: "$CI_PROJECT_DIR"
+  OUTPUT_PATH: "$CI_PROJECT_DIR/artifacts"
+  APP_OUTPUT_PATH: "$CI_PROJECT_DIR/artifacts/app"
+
+install_dependencies:
+  stage: install
+  image: node:14-alpine
+  tags:
+    - docker
+  script:
+    - npm install
+  cache:
+    key:
+      files:
+        - package-lock.json
+    path:
+      - node_modules
+    policy: pull
+  only:
+    refs:
+      - merge_requests
+      - master
+    changes:
+      - package-lock.json
+
+build_app:
+  stage: build_and_test
+  image: node:14-alpine
+  tags:
+    - docker
+  script:
+    - npm run build
+  after_script:
+    - cp $PROJECT_PATH/Dockerfile $APP_OUTPUT_PATH
+  artifacts:
+    name: "angular-app-pipeline"
+    paths:
+      - $APP_OUTPUT_PATH
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules
+    policy: pull
+
+test_app:
+  stage: build_and_test
+  image: node:14-alpine
+  tags:
+    - docker
+  before_script:
+    - apk add chromium
+    - export CHROME_BIN=/usr/bin/chromium-browser
+  script:
+    #    - yarn ng lint
+    - npm run test-ci
+  coverage: "/Statements\s+:\s\d+.\d+%/"
+  artifacts:
+    name: "tests-and-coverage"
+    reports:
+      junit:
+        - $OUTPUT_PATH/tests/junit-test-results.xml
+      cobertura:
+        - $OUTPUT_PATH/coverage/cobertura-coverage.xml
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules
+    policy: pull

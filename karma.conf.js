@@ -3,14 +3,15 @@
 
 module.exports = function (config) {
   config.set({
-    basePath: '',
-    frameworks: ['jasmine', '@angular-devkit/build-angular'],
+    basePath: "",
+    frameworks: ["jasmine", "@angular-devkit/build-angular"],
     plugins: [
-      require('karma-jasmine'),
-      require('karma-chrome-launcher'),
-      require('karma-jasmine-html-reporter'),
-      require('karma-coverage'),
-      require('@angular-devkit/build-angular/plugins/karma')
+      require("karma-jasmine"),
+      require("karma-chrome-launcher"),
+      require("karma-jasmine-html-reporter"),
+      require("karma-coverage"),
+      require("@angular-devkit/build-angular/plugins/karma"),
+      require("karma-junit-reporter"),
     ],
     client: {
       jasmine: {
@@ -19,26 +20,44 @@ module.exports = function (config) {
         // for example, you can disable the random execution with `random: false`
         // or set a specific seed with `seed: 4321`
       },
-      clearContext: false // leave Jasmine Spec Runner output visible in browser
+      clearContext: false, // leave Jasmine Spec Runner output visible in browser
+    },
+    junitReporter: {
+      outputDir: "artifacts/tests",
+      outputFile: "junit-test-results.xml",
+      useBrowserName: false,
     },
     jasmineHtmlReporter: {
-      suppressAll: true // removes the duplicated traces
+      suppressAll: true, // removes the duplicated traces
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/gitlab-playground'),
-      subdir: '.',
+      dir: require("path").join(__dirname, "./artifacts/coverage"),
+      subdir: ".",
       reporters: [
-        { type: 'html' },
-        { type: 'text-summary' }
-      ]
+        { type: "html" },
+        { type: "text-summary" },
+        { type: "lcovonly" },
+        { type: "cobertura" },
+      ],
+      "report-config": {
+        "text-summary": {
+          file: "text-summary.txt",
+        },
+      },
     },
-    reporters: ['progress', 'kjhtml'],
+    reporters: ["progress", "kjhtml", "junit"],
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,
     autoWatch: true,
-    browsers: ['Chrome'],
+    browsers: ["Chrome"],
     singleRun: false,
-    restartOnFileChange: true
+    restartOnFileChange: true,
+    customLaunchers: {
+      GitlabHeadlessChrome: {
+        base: "ChromeHeadless",
+        flags: ["--no-sandbox"],
+      },
+    },
   });
 };
